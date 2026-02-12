@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Subject } from '../types';
-// FIX: Added GraduationCap to the imports from lucide-react to resolve the missing name error.
+import { Subject, UserProfile } from '../types';
 import { 
   Atom, 
   Beaker, 
@@ -13,7 +12,10 @@ import {
   BookOpenText,
   Clock,
   Trophy,
-  GraduationCap
+  GraduationCap,
+  Target,
+  BarChart3,
+  Flame
 } from 'lucide-react';
 
 const subjectsList = [
@@ -24,19 +26,69 @@ const subjectsList = [
   { id: Subject.COMPUTER_SCIENCE, icon: Cpu, color: 'text-amber-600', bg: 'bg-amber-100', topics: ['Algorithms', 'Logic Gates', 'Hardware'] },
 ];
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<{ user: UserProfile }> = ({ user }) => {
   const navigate = useNavigate();
+  const stats = user.stats;
+  
+  const accuracy = stats.totalQuestions > 0 
+    ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100) 
+    : 0;
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-          Welcome back, Scholar! 👋
-        </h1>
-        <p className="text-lg text-slate-600 max-w-2xl">
-          Ready to master your O-Levels? Pick a subject below to start randomized practice or learn new concepts with easy analogies.
-        </p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            Welcome back, {user.name}! 👋
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl">
+            You've completed {stats.examsCompleted} exam papers so far. Keep pushing for that A*!
+          </p>
+        </div>
       </header>
+
+      {/* Progress Report Section */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
+            <Target size={24} />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Overall Accuracy</div>
+            <div className="text-2xl font-black text-slate-900">{accuracy}%</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
+            <Trophy size={24} />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Marks</div>
+            <div className="text-2xl font-black text-slate-900">{stats.totalCorrect}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-rose-100 p-3 rounded-xl text-rose-600">
+            <BarChart3 size={24} />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Questions Solved</div>
+            <div className="text-2xl font-black text-slate-900">{stats.totalQuestions}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
+            <Flame size={24} />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Exams Finished</div>
+            <div className="text-2xl font-black text-slate-900">{stats.examsCompleted}</div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {subjectsList.map((subj) => (
@@ -47,7 +99,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex gap-2">
                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
-                   Randomized
+                   {stats.subjectAttempts[subj.id] || 0} Attempts
                  </span>
               </div>
             </div>
@@ -81,11 +133,11 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      <section className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden">
+      <section className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-4 max-w-xl">
             <h2 className="text-2xl font-bold">Smart AI Tutor Tip 💡</h2>
-            <p className="text-indigo-100 leading-relaxed italic">
+            <p className="text-indigo-100 leading-relaxed italic text-lg">
               "Think of momentum like a heavy truck rolling down a hill. Even if it's moving slowly, it's hard to stop because of its huge mass. That's why p = mv!"
             </p>
             <div className="flex items-center gap-4 text-sm font-medium">
@@ -93,7 +145,7 @@ const Dashboard: React.FC = () => {
                 <Clock size={16} /> 20m Daily helps retention
               </div>
               <div className="flex items-center gap-1.5">
-                <Trophy size={16} /> 85% Target Score
+                <Target size={16} /> Consistency is Key
               </div>
             </div>
           </div>

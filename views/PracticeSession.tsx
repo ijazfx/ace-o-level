@@ -1,7 +1,7 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Subject, Question, QuizState } from '../types';
+import { Subject, Question, QuizState, UserProfile } from '../types';
 import { generateQuestions } from '../geminiService';
 import { 
   ArrowLeft, 
@@ -57,6 +57,23 @@ const PracticeSession: React.FC = () => {
     }
   };
 
+  const updateStats = (finalScore: number, totalQs: number) => {
+    const saved = localStorage.getItem('aceOLevel_user');
+    if (saved) {
+      const user: UserProfile = JSON.parse(saved);
+      user.stats.totalQuestions += totalQs;
+      user.stats.totalCorrect += finalScore;
+      user.stats.examsCompleted += 1;
+      
+      const currentSubj = subject as string;
+      user.stats.subjectAttempts[currentSubj] = (user.stats.subjectAttempts[currentSubj] || 0) + 1;
+      
+      localStorage.setItem('aceOLevel_user', JSON.stringify(user));
+      // Trigger a window event to notify other components if needed, 
+      // though Dashboard will naturally refresh on navigation.
+    }
+  };
+
   const handleAnswer = (optionIndex: number) => {
     if (quiz.userAnswers[quiz.currentIndex] !== null) return;
 
@@ -76,6 +93,7 @@ const PracticeSession: React.FC = () => {
     if (quiz.currentIndex < quiz.questions.length - 1) {
       setQuiz(prev => ({ ...prev, currentIndex: prev.currentIndex + 1 }));
     } else {
+      updateStats(quiz.score, quiz.questions.length);
       setPhase('result');
     }
   };
@@ -105,7 +123,7 @@ const PracticeSession: React.FC = () => {
                 placeholder="e.g. Kinematics, Mole Concept, or leave empty for all"
                 value={targetTopic}
                 onChange={(e) => setTargetTopic(e.target.value)}
-                className="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none"
+                className="w-full px-4 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg font-medium"
               />
             </div>
 
@@ -227,7 +245,6 @@ const PracticeSession: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg p-10 shadow-md border border-slate-200 animate-slideUp relative">
-        {/* Exam Paper Aesthetic Header */}
         <div className="absolute top-0 right-0 p-4">
            <span className="text-[10px] font-mono text-slate-300 uppercase select-none">Cambridge O-Level Equivalent / AceOLevel Internal</span>
         </div>

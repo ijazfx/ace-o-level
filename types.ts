@@ -33,3 +33,15 @@ export interface QuizState {
   showResult: boolean;
   userAnswers: (number | null)[];
 }
+
+export interface UserStats {
+  totalQuestions: number;
+  totalCorrect: number;
+  examsCompleted: number;
+  subjectAttempts: Record<string, number>;
+}
+
+export interface UserProfile {
+  name: string;
+  stats: UserStats;
+}
