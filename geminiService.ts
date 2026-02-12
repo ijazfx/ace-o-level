@@ -4,11 +4,22 @@ import { Question, Subject, Explanation } from "./types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const generateQuestions = async (subject: Subject, count: number = 3): Promise<Question[]> => {
+export const generateQuestions = async (subject: Subject, count: number = 10, topic?: string): Promise<Question[]> => {
+  const topicContext = topic ? `specifically on the topic of "${topic}"` : "covering a broad range of curriculum topics";
+  
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Generate ${count} high-quality O-Level practice questions for ${subject}. 
-    Each question should include a detailed O-Level style explanation and an easy-to-remember analogy.`,
+    contents: `Generate ${count} high-quality O-Level examination practice questions for ${subject} ${topicContext}. 
+    
+    CRITICAL INSTRUCTIONS:
+    1. Language: Use formal, precise British English as found in CIE (Cambridge) or SEAB O-Level papers.
+    2. Format: These must be Multiple Choice Questions (MCQs) typical of 'Paper 1'.
+    3. Content: Include a mix of recall, application, and analysis questions.
+    4. Structure: Each question must have a clear 'stem' (the question body) and 4 distinct options (distractors should be plausible common misconceptions).
+    5. Analogies: Provide an easy-to-remember analogy to help students memorize the underlying concept.
+    6. Explanations: Provide a systematic explanation that corrects the common errors associated with the distractors.
+    
+    Return the data as a JSON array matching the provided schema.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -22,7 +33,8 @@ export const generateQuestions = async (subject: Subject, count: number = 3): Pr
             question: { type: Type.STRING },
             options: {
               type: Type.ARRAY,
-              items: { type: Type.STRING }
+              items: { type: Type.STRING },
+              description: "Exactly 4 options."
             },
             correctAnswer: { type: Type.INTEGER },
             explanation: { type: Type.STRING },
